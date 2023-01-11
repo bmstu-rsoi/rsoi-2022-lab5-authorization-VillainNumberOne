@@ -9,27 +9,27 @@
     },
     {
       "key": "identityProviderUrl",
-      "value": "",
+      "value": "https://dev-72954585.okta.com",
       "enabled": true
     },
     {
       "key": "username",
-      "value": "",
+      "value": "email@email.com",
       "enabled": true
     },
     {
       "key": "password",
-      "value": "",
+      "value": "12345qwerty!",
       "enabled": true
     },
     {
       "key": "clientId",
-      "value": "",
+      "value": "0oa7xagt2tTueAyZh5d7",
       "enabled": true
     },
     {
       "key": "clientSecret",
-      "value": "",
+      "value": "FXkqSr_9akHt74WKguhsz5atVaWpZD6aaKq_4eZN",
       "enabled": true
     }
   ],

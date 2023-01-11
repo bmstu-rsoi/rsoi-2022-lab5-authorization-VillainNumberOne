@@ -59,24 +59,26 @@
 									"type": "text"
 								},
 								{
-									"key": "clientId",
+									"key": "client_id",
 									"value": "{{clientId}}",
 									"type": "text"
 								},
 								{
-									"key": "clientSecret",
+									"key": "client_secret",
 									"value": "{{clientSecret}}",
 									"type": "text"
 								}
 							]
 						},
 						"url": {
-							"raw": "{{identityProviderUrl}}/oauth/token",
+							"raw": "{{identityProviderUrl}}/oauth2/default/v1/token",
 							"host": [
 								"{{identityProviderUrl}}"
 							],
 							"path": [
-								"oauth",
+								"oauth2",
+								"default",
+								"v1",
 								"token"
 							]
 						}
