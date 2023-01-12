@@ -48,15 +48,15 @@ jobs:
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
-          collection: <variant>/postman/collection.json
-          environment: <variant>/postman/environment.json
+          collection: v4/postman/collection.json
+          environment: v4/postman/environment.json
           delayRequest: 100
           reporters: '[ "cli" ]'
 
-      - name: Wait 120s
+      - name: Wait 60s
         uses: jakejarvis/wait-action@master
         with:
-          time: '120s'
+          time: '60s'
 
       # - uses: education/autograding@v1
       #   id: autograder
