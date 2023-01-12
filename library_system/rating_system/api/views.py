@@ -14,7 +14,7 @@ from api.messages import *
 def rating_system_api(request, username=None):
     print(username, flush=True)
     if request.method == "GET":
-        if username is None:
+        if username is not None:
             ratings =  Rating.objects.all()
             ratings_serializer =  RatingSerializer(ratings, many=True)
             return JsonResponse(ratings_serializer.data, safe=False, status=status.HTTP_200_OK)
