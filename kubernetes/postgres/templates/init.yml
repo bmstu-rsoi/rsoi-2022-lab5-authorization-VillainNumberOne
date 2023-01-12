@@ -59,7 +59,7 @@ data:
             CHECK (stars BETWEEN 0 AND 100)
     );
 
-    insert into rating (id, username, stars) values ('1', 'Test Max', '75');
+    insert into rating (id, username, stars) values ('1', 'email@email.com', '75');
 
     \c reservations;
     CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
