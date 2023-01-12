@@ -122,11 +122,6 @@ def make_reservation(username, book_uid, library_uid, till_date, token):
         requests.get(f"{RATING_SYSTEM}/api/v1/ratings/{username}", headers={'AUTHORIZATION': token}).text
     )
 
-    if user_stars - user_rented <= 0:
-        return None, "Insufficient rating"
-
-    # SAFE PREPARE #############################
-
     libraryes_info_data = {"libraries_list": [library_uid]}
     books_info_data = {"books_list": [book_uid]}
 
@@ -234,8 +229,8 @@ def return_book(username, reservation_uid, condition, date, token):
         data=json.dumps(available_count_data),
         headers={'AUTHORIZATION': token}
     ).status_code
-    if status_code != 202:
-        return None, "Unable to update available_count"
+    # if status_code != 202:
+    #     return None, "Unable to update available_count"
     
     # Update book condition
     update_condition_data = {
@@ -247,8 +242,8 @@ def return_book(username, reservation_uid, condition, date, token):
         data=json.dumps(update_condition_data),
         headers={'AUTHORIZATION': token}
     )
-    if update_condition_response.status_code != 202:
-        return None, "Unable to update book condition"
+    # if update_condition_response.status_code != 202:
+    #     return None, "Unable to update book condition"
     
     conditions = json.loads(update_condition_response.text)
 

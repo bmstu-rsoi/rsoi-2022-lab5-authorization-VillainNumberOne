@@ -8,13 +8,16 @@ from rest_framework import status
 from api.models import  Rating
 from api.serializers import  RatingSerializer
 from api.messages import *
+import api.utils.utils as utils
 
 
 @csrf_exempt
 def rating_system_api(request, username=None):
+    if not utils.verify(request):
+        return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
     print(username, flush=True)
     if request.method == "GET":
-        if username is not None:
+        if username is None:
             ratings =  Rating.objects.all()
             ratings_serializer =  RatingSerializer(ratings, many=True)
             return JsonResponse(ratings_serializer.data, safe=False, status=status.HTTP_200_OK)
@@ -22,6 +25,7 @@ def rating_system_api(request, username=None):
             try:
                 person =  Rating.objects.get(username=username)
                 person_serializer =  RatingSerializer(person)
+                print(person_serializer.data['stars'], flush=True)
                 return JsonResponse(person_serializer.data['stars'], safe=False, status=status.HTTP_200_OK)
             except  Rating.DoesNotExist:
                 return HttpResponse(status=status.HTTP_404_NOT_FOUND)

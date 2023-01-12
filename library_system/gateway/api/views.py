@@ -140,6 +140,7 @@ def return_book(request, reservation_uid=None):
 
         username = utils.get_username(token)
         if username is None:
+            print("here 1", flush=True)
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -148,11 +149,15 @@ def return_book(request, reservation_uid=None):
                 condition = data["condition"]
                 date = data["date"]
             else:
+                print("here 2", flush=True)
                 return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
             if condition not in ["BAD", "GOOD", "EXCELLENT"]:
+                print("here 3", flush=True)
                 return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
-            print(ex)
+            print("here 4", flush=True)
+            print(ex, flush=True)
+            print(traceback.format_exc(), flush=True)
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
         try:
