@@ -12,6 +12,7 @@ from api.messages import *
 
 @csrf_exempt
 def rating_system_api(request, username=None):
+    print(username, flush=True)
     if request.method == "GET":
         if username is None:
             ratings =  Rating.objects.all()
