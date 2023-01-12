@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse, HttpResponse
 from rest_framework import status
+import traceback
 
 # from api.serializers import PersonSerializer
 from api.messages import *
@@ -113,6 +114,7 @@ def reservations(request):
             )
         except Exception as ex:
             print(ex, flush=True)
+            print(traceback.format_exc(), flush=True)
             return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         if result is not None:
