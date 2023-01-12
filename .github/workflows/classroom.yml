@@ -1,7 +1,7 @@
 name: GitHub Classroom Workflow
 on:
   push:
-    branches: [ master ]
+    branches: [ master, dev ]
 jobs:
   build:
     name: Autograding
@@ -45,13 +45,13 @@ jobs:
           helm upgrade --install library ./kubernetes/library
           kubectl apply -f ./kubernetes/ingress.yaml
 
-      # - name: Run API Tests
-      #   uses: matt-ball/newman-action@master
-      #   with:
-      #     collection: <variant>/postman/collection.json
-      #     environment: <variant>/postman/environment.json
-      #     delayRequest: 100
-      #     reporters: '[ "cli" ]'
+      - name: Run API Tests
+        uses: matt-ball/newman-action@master
+        with:
+          collection: <variant>/postman/collection.json
+          environment: <variant>/postman/environment.json
+          delayRequest: 100
+          reporters: '[ "cli" ]'
 
       # - uses: education/autograding@v1
       #   id: autograder
