@@ -112,7 +112,7 @@ def reservations(request):
                 username, book_uid, library_uid, till_date, token
             )
         except Exception as ex:
-            print(ex)
+            print(ex, flush=True)
             return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         if result is not None:
