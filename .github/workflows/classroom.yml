@@ -1,7 +1,7 @@
 name: GitHub Classroom Workflow
 on:
   push:
-    branches: [ master ]
+    branches: [ master, dev ]
 jobs:
   build:
     name: Autograding
@@ -15,24 +15,54 @@ jobs:
 
       # TODO build, publish to docker hub, deploy to k8s
 
-      - name: Run API Tests
-        uses: matt-ball/newman-action@master
-        with:
-          collection: <variant>/postman/collection.json
-          environment: <variant>/postman/environment.json
-          delayRequest: 100
-          reporters: '[ "cli" ]'
+      - name: Build, publish
+        env:
+          DOCKER_USER: ${{secrets.DOCKERHUB_USERNAME}}
+          DOCKER_PASSWORD: ${{secrets.DOCKERHUB_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+          docker build --no-cache -t mvgorshkoff/gateway ./library_system/gateway/
+          docker push mvgorshkoff/gateway:latest
+          docker build --no-cache -t mvgorshkoff/ratingsystem ./library_system/rating_system/
+          docker push mvgorshkoff/ratingsystem:latest
+          docker build --no-cache -t mvgorshkoff/librarysystem ./library_system/library_system/
+          docker push mvgorshkoff/librarysystem:latest
+          docker build --no-cache -t mvgorshkoff/reservationsystem ./library_system/reservation_system/
+          docker push mvgorshkoff/reservationsystem:latest
 
-      - uses: education/autograding@v1
-        id: autograder
-        continue-on-error: true
+      - name: Deploy
+        timeout-minutes: 5
+        env:
+          SERVER: "${{secrets.OKTETO_SERVER}}"
+          TOKEN: "${{secrets.OKTETO_TOKEN}}"
+          CERTIFICATE: "${{secrets.OKTETO_CERTIFICATE}}"
+        run: |
+          kubectl config set-cluster lab4 --server=$SERVER
+          kubectl config set-credentials dev --token=$TOKEN
+          kubectl config set clusters.lab4.certificate-authority-data $CERTIFICATE
+          kubectl config set-context prod --cluster=lab4 --user=dev --namespace=villainnumberone
+          kubectl config use-context prod
+          helm upgrade --install library ./kubernetes/library
+          kubectl apply -f ./kubernetes/ingress.yaml
 
-      - name: Github auto grader mark
-        uses: Romanow/google-sheet-autograder-marker@v1.0
-        with:
-          google_token: ${{secrets.GOOGLE_API_KEY}}
-          sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
-          homework_number: 5
-          user_column: 'D'
-          column_offset: 'F'
-          mark: "'+"
+      # - name: Run API Tests
+      #   uses: matt-ball/newman-action@master
+      #   with:
+      #     collection: <variant>/postman/collection.json
+      #     environment: <variant>/postman/environment.json
+      #     delayRequest: 100
+      #     reporters: '[ "cli" ]'
+
+      # - uses: education/autograding@v1
+      #   id: autograder
+      #   continue-on-error: true
+
+      # - name: Github auto grader mark
+      #   uses: Romanow/google-sheet-autograder-marker@v1.0
+      #   with:
+      #     google_token: ${{secrets.GOOGLE_API_KEY}}
+      #     sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
+      #     homework_number: 5
+      #     user_column: 'D'
+      #     column_offset: 'F'
+      #     mark: "'+"
