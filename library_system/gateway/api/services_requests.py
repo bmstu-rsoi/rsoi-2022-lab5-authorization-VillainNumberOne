@@ -30,7 +30,7 @@ def get_library_books(library_uid, token, page=None, size=None, show_all=None):
 
 def get_user_reservations(username, token):
     reservations = json.loads(
-        requests.get(f"{RESERVATION_SYSTEM}/api/v1/reservations/{username}").text, headers={'AUTHORIZATION': token}
+        requests.get(f"{RESERVATION_SYSTEM}/api/v1/reservations/{username}", headers={'AUTHORIZATION': token}).text
     )
     libraries_list = [reservation["library_uid"] for reservation in reservations]
     books_list = [reservation["book_uid"] for reservation in reservations]
