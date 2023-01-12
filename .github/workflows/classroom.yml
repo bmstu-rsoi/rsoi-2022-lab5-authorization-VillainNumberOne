@@ -53,6 +53,11 @@ jobs:
           delayRequest: 100
           reporters: '[ "cli" ]'
 
+      - name: Wait 120s
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '120s'
+
       # - uses: education/autograding@v1
       #   id: autograder
       #   continue-on-error: true
