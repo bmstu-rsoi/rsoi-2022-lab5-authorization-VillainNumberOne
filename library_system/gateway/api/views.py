@@ -14,7 +14,15 @@ import api.errors as errors
 
 
 @csrf_exempt
+def callback(request):
+    return HttpResponse(status=status.HTTP_200_OK)
+
+
+@csrf_exempt
 def libraries(request, library_uid=None):
+    if not utils.verify(request):
+        return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
+    token = utils.get_token(request)
     if request.method == "GET":
         if library_uid is None:
             try:
@@ -33,7 +41,7 @@ def libraries(request, library_uid=None):
                     city = request.GET["city"]
                     try:
                         libraries_data = api.services_requests.get_city_libraries(
-                            city, page, size
+                            city, token, page, size
                         )
                         return JsonResponse(
                             libraries_data, safe=False, status=status.HTTP_200_OK
@@ -58,7 +66,7 @@ def libraries(request, library_uid=None):
 
             try:
                 librarybooks = api.services_requests.get_library_books(
-                    library_uid, page, size, show_all
+                    library_uid, token, page, size, show_all
                 )
                 return JsonResponse(librarybooks, safe=False, status=status.HTTP_200_OK)
             except Exception as ex:
@@ -70,18 +78,19 @@ def libraries(request, library_uid=None):
 
 @csrf_exempt
 def reservations(request):
+    if not utils.verify(request):
+        return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
+    token = utils.get_token(request)
     if request.method == "GET":
-        headers = utils.get_http_headers(request)
-        if "X_USER_NAME" in headers.keys():
-            username = headers["X_USER_NAME"]
-            reservations = api.services_requests.get_user_reservations(username)
+        username = utils.get_username(token)
+        if username is not None:
+            reservations = api.services_requests.get_user_reservations(
+                username, token)
             return JsonResponse(reservations, safe=False, status=status.HTTP_200_OK)
 
     elif request.method == "POST":
-        headers = utils.get_http_headers(request)
-        if "X_USER_NAME" in headers.keys():
-            username = headers["X_USER_NAME"]
-        else:
+        username = utils.get_username(token)
+        if username is None:
             return JsonResponse(
                 errors.reservations_no_username(), status=status.HTTP_400_BAD_REQUEST
             )
@@ -100,7 +109,7 @@ def reservations(request):
 
         try:
             result, error = api.services_requests.make_reservation(
-                username, book_uid, library_uid, till_date
+                username, book_uid, library_uid, till_date, token
             )
         except Exception as ex:
             print(ex)
@@ -120,14 +129,15 @@ def reservations(request):
 
 @csrf_exempt
 def return_book(request, reservation_uid=None):
+    if not utils.verify(request):
+        return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
+    token = utils.get_token(request)
     if request.method == "POST":
         if reservation_uid is None:
             HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
-        headers = utils.get_http_headers(request)
-        if "X_USER_NAME" in headers.keys():
-            username = headers["X_USER_NAME"]
-        else:
+        username = utils.get_username(token)
+        if username is None:
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -145,7 +155,7 @@ def return_book(request, reservation_uid=None):
 
         try:
             result, error = api.services_requests.return_book(
-                username, reservation_uid, condition, date
+                username, reservation_uid, condition, date, token
             )
         except Exception as ex:
             print(ex)
@@ -172,12 +182,15 @@ def return_book(request, reservation_uid=None):
 
 @csrf_exempt
 def rating(request):
+    if not utils.verify(request):
+        return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
+    token = utils.get_token(request)
     if request.method == "GET":
-        headers = utils.get_http_headers(request)
-        if "X_USER_NAME" in headers.keys():
-            username = headers["X_USER_NAME"]
+        username = utils.get_username(token)
+        if username is not None:
             try:
-                rating, error = api.services_requests.get_user_rating(username)
+                rating, error = api.services_requests.get_user_rating(
+                    username, token)
                 if error:
                     if error == 404:
                         return HttpResponse(status=status.HTTP_404_NOT_FOUND)

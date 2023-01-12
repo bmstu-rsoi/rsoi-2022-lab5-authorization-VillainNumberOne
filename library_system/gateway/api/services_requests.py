@@ -7,15 +7,15 @@ RATING_SYSTEM = "http://rating-service:8050"
 RESERVATION_SYSTEM = "http://res-service:8070"
 
 
-def get_city_libraries(city, page=None, size=None):
+def get_city_libraries(city, token, page=None, size=None):
     data = {"city": city, "page": page, "size": size}
     response = requests.get(
-        f"{LIBRARY_SYSTEM}/api/v1/libraries", data=json.dumps(data)
+        f"{LIBRARY_SYSTEM}/api/v1/libraries", data=json.dumps(data), headers={'AUTHORIZATION': token}
     ).text
     return json.loads(response)
 
 
-def get_library_books(library_uid, page=None, size=None, show_all=None):
+def get_library_books(library_uid, token, page=None, size=None, show_all=None):
     data = {
         "library_uid": library_uid,
         "page": page,
@@ -23,14 +23,14 @@ def get_library_books(library_uid, page=None, size=None, show_all=None):
         "show_all": show_all,
     }
     response = requests.get(
-        f"{LIBRARY_SYSTEM}/api/v1/librarybooks", data=json.dumps(data)
+        f"{LIBRARY_SYSTEM}/api/v1/librarybooks", data=json.dumps(data), headers={'AUTHORIZATION': token}
     ).text
     return json.loads(response)
 
 
-def get_user_reservations(username):
+def get_user_reservations(username, token):
     reservations = json.loads(
-        requests.get(f"{RESERVATION_SYSTEM}/api/v1/reservations/{username}").text
+        requests.get(f"{RESERVATION_SYSTEM}/api/v1/reservations/{username}").text, headers={'AUTHORIZATION': token}
     )
     libraries_list = [reservation["library_uid"] for reservation in reservations]
     books_list = [reservation["book_uid"] for reservation in reservations]
@@ -42,11 +42,12 @@ def get_user_reservations(username):
         requests.get(
             f"{LIBRARY_SYSTEM}/api/v1/libraries/info",
             data=json.dumps(libraryes_info_data),
+            headers={'AUTHORIZATION': token}
         ).text
     )
     books_info = json.loads(
         requests.get(
-            f"{LIBRARY_SYSTEM}/api/v1/books/info", data=json.dumps(books_info_data)
+            f"{LIBRARY_SYSTEM}/api/v1/books/info", data=json.dumps(books_info_data), headers={'AUTHORIZATION': token}
         ).text
     )
 
@@ -84,15 +85,15 @@ def get_user_reservations(username):
 
     return result
 
-def get_user_rating(username):
-    response = requests.get(f"{RATING_SYSTEM}/api/v1/ratings/{username}")
+def get_user_rating(username, token):
+    response = requests.get(f"{RATING_SYSTEM}/api/v1/ratings/{username}", headers={'AUTHORIZATION': token})
     if response.status_code != 200:
         return None, response.status_code
     else:
         user_stars = json.loads(response.text)
         return user_stars, None
 
-def make_reservation(username, book_uid, library_uid, till_date):
+def make_reservation(username, book_uid, library_uid, till_date, token):
     # CHECKS ##################################
     try:
         till_date = datetime.strptime(till_date, "%Y-%m-%d")
@@ -108,16 +109,17 @@ def make_reservation(username, book_uid, library_uid, till_date):
         requests.get(
             f"{LIBRARY_SYSTEM}/api/v1/books/available",
             data=json.dumps(available_count_data),
+            headers={'AUTHORIZATION': token}
         ).text
     )
     if not (available_count != 0):
         return None, "Not available"
 
     user_rented = json.loads(
-        requests.get(f"{RESERVATION_SYSTEM}/api/v1/reservations/{username}/rented").text
+        requests.get(f"{RESERVATION_SYSTEM}/api/v1/reservations/{username}/rented", headers={'AUTHORIZATION': token}).text
     )
     user_stars = json.loads(
-        requests.get(f"{RATING_SYSTEM}/api/v1/ratings/{username}").text
+        requests.get(f"{RATING_SYSTEM}/api/v1/ratings/{username}", headers={'AUTHORIZATION': token}).text
     )
 
     if user_stars - user_rented <= 0:
@@ -132,11 +134,13 @@ def make_reservation(username, book_uid, library_uid, till_date):
         requests.get(
             f"{LIBRARY_SYSTEM}/api/v1/libraries/info",
             data=json.dumps(libraryes_info_data),
+            headers={'AUTHORIZATION': token}
         ).text
     )
     books_info = json.loads(
         requests.get(
-            f"{LIBRARY_SYSTEM}/api/v1/books/info", data=json.dumps(books_info_data)
+            f"{LIBRARY_SYSTEM}/api/v1/books/info", data=json.dumps(books_info_data),
+            headers={'AUTHORIZATION': token}
         ).text
     )
 
@@ -153,12 +157,14 @@ def make_reservation(username, book_uid, library_uid, till_date):
     status_code = requests.post(
         f"{LIBRARY_SYSTEM}/api/v1/books/available",
         data=json.dumps(available_count_data),
+        headers={'AUTHORIZATION': token}
     ).status_code
     if status_code != 202:
         return None, "Not available"
 
     reservation_response = requests.post(
-        f"{RESERVATION_SYSTEM}/api/v1/reservation", data=json.dumps(reservation_data)
+        f"{RESERVATION_SYSTEM}/api/v1/reservation", data=json.dumps(reservation_data),
+        headers={'AUTHORIZATION': token}
     )
     if reservation_response.status_code != 201:
         return None, "Not available"
@@ -197,7 +203,7 @@ def make_reservation(username, book_uid, library_uid, till_date):
     return result, None
 
 
-def return_book(username, reservation_uid, condition, date):
+def return_book(username, reservation_uid, condition, date, token):
     # При возврате книги в Rented System изменяется статус на:
     #   EXPIRED если дата возврата больше till_date в записи о резерве;
     #   RETURNED если книгу сдали в срок.
@@ -209,6 +215,7 @@ def return_book(username, reservation_uid, condition, date):
     return_response = requests.patch(
         f"{RESERVATION_SYSTEM}/api/v1/reservation",
         data=json.dumps(return_data),
+        headers={'AUTHORIZATION': token}
     )
     if return_response.status_code == 404:
         return None, 404
@@ -225,6 +232,7 @@ def return_book(username, reservation_uid, condition, date):
     status_code = requests.post(
         f"{LIBRARY_SYSTEM}/api/v1/books/available",
         data=json.dumps(available_count_data),
+        headers={'AUTHORIZATION': token}
     ).status_code
     if status_code != 202:
         return None, "Unable to update available_count"
@@ -237,6 +245,7 @@ def return_book(username, reservation_uid, condition, date):
     update_condition_response = requests.patch(
         f"{LIBRARY_SYSTEM}/api/v1/books/return",
         data=json.dumps(update_condition_data),
+        headers={'AUTHORIZATION': token}
     )
     if update_condition_response.status_code != 202:
         return None, "Unable to update book condition"
@@ -259,6 +268,7 @@ def return_book(username, reservation_uid, condition, date):
     update_stars_response = requests.patch(
         f"{RATING_SYSTEM}/api/v1/ratings/{username}",
         data=json.dumps(update_stars_data),
+        headers={'AUTHORIZATION': token}
     )
     if update_stars_response.status_code != 202:
         return None, "Unable to update user rating"
